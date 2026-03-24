@@ -1,0 +1,98 @@
+
+#### get all
+GET http://localhost:4000/api/products
+
+### get by id
+GET http://localhost:4000/api/products/1
+
+
+### get by public id (use in public)
+GET http://localhost:4000/api/products/public/2271caf8-94d2-43bc-993f-e16f9a4ce632
+
+#### insert record
+### you can use object below for data model
+POST http://localhost:4000/api/products
+Content-Type: application/json
+
+{
+  "name": "S7 Sports Smartwatch",
+  "tagline": "Experience the future of tablets.",
+  "specs": [
+    {
+      "category": "Display",
+      "sub_specs": [
+        {
+        "specs_key": "Sizes",
+        "specs_value": "15 inches"
+        },
+         {
+        "specs_key": "Display",
+        "specs_value": "1080p"
+        }
+      ]
+    },
+    {
+      "category": "Memory",
+      "sub_specs": [
+        {
+        "specs_key": "RAM",
+        "specs_value": "8 GB"
+      }
+      ]
+    }
+  ]
+}
+
+### update record
+PUT http://localhost:4000/api/products
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "S7 Sports Smartwatch",
+  "tagline": "Experience the future of tablets.",
+  "specs": [
+    {
+      "category": "Display",
+      "id": 1,
+      "sub_specs": [
+        {
+        "specs_key": "Sizes",
+        "specs_value": "15 inches",
+        "id": 1
+        },
+        {
+        "specs_key": "Battery",
+        "specs_value": "asdddd"
+        }
+        
+      ]
+    },
+    {
+      "category": "Memory",
+      "id": 2,
+      "sub_specs": [
+        {
+        "specs_key": "RAM",
+        "specs_value": "8 GB",
+        "id": 2
+      }
+      ]
+    },
+    {
+      "category": "Speaker",
+      "sub_specs": [
+        {
+        "specs_key": "Addd",
+        "specs_value": "sdsdasB"
+      }
+      ]
+    },
+  ]
+}
+
+#### upload image
+# try this on postman use form-data
+# add key as 'files' and select file type then upload multiple images
+# add key id and value as product id to associate images to a product
+# POST http://localhost:4000/api/products/upload

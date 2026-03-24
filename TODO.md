@@ -1,0 +1,1 @@
+- [x] Remove the early return statement in sentReply method to allow saving inquiries reply and attachments

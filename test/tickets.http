@@ -1,0 +1,73 @@
+
+#### get all
+GET http://localhost:4000/api/tickets
+
+### get by id
+GET http://localhost:4000/api/tickets/1
+
+#### insert record
+POST http://localhost:4000/api/tickets
+Content-Type: application/json
+
+{
+  "type": "Client",
+  "organization": "School",
+  "first_name": "Juan",
+  "last_name": "Cruz",
+  "address": "123 Street",
+  "category": "Tablet",
+  "device": "Tablet",
+  "email":"johndoe@gmail.com",
+  "contact_number": "09123456789",
+  "concern": "Tablet not working"
+}
+
+### update record
+PUT http://localhost:4000/api/tickets
+Content-Type: application/json
+
+{
+  "type": "Employee",
+  "organization": "School",
+  "first_name": "asd",
+  "last_name": "dd",
+  "address": "123 Street",
+  "category": "Tablet",
+  "device": "Tablet",
+  "email":"johndoe@gmail.com",
+  "contact_number": "09123456789",
+  "concern": "Tablet not working",
+  "id": 1
+}
+
+### get by id
+GET http://localhost:4000/api/tickets/1/messages
+
+
+
+#### post message USER POV - 
+POST http://localhost:4000/api/tickets/1/message
+Content-Type: application/json
+
+{
+  "ticket_id": 1,
+  "message": "Tablet not working"
+}
+
+#### post message CLIENT POV
+#TODO: create public url
+POST http://localhost:4000/api/tickets
+Content-Type: application/json
+
+{
+  "ticket_id": 1,
+  "sneder_type": "School",
+  "first_name": "Juan",
+  "last_name": "Cruz",
+  "address": "123 Street",
+  "category": "Tablet",
+  "device": "Tablet",
+  "email":"johndoe@gmail.com",
+  "contact_number": "09123456789",
+  "concern": "Tablet not working"
+}

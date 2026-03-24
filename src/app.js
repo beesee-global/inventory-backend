@@ -61,26 +61,8 @@ module.exports = async function buildApp(fastify) {
   | Api Routes (using route file name)                                  |
   ---------------------------------------------------------------------*/
   const routes = [
-    "auth",
-    "tickets",    
+    "auth", 
     "users",
-    "categories",
-    "products",
-    "faqs",
-    "inquiries",
-    "positions",
-    "dashboard", 
-    "issues",
-    "careers",
-    "applicants",
-    "ecom_school_processes",
-    "ecom_users",
-    "ecom_auth",
-    "ecom_category",
-    "ecom_products",
-    "ecom_featured_product",
-    "users_userinfo",
-    "audit_logs",
   ]; //register routes and models here
 
   /*--------------------------------------------------------------------

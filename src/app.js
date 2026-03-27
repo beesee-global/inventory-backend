@@ -40,9 +40,9 @@ module.exports = async function buildApp(fastify) {
   | msyql                                                               |
   ---------------------------------------------------------------------*/
   fastify.register(require("@fastify/mysql"), {
-    name: "ticketing-system",
+    name: "inventory_system",
     promise: true,
-    connectionString: `mysql://${process.env.SQLUSER}:${process.env.SQLPASS}@${process.env.SQLHOST}/${process.env.SQLDBTICKET}`,
+    connectionString: `mysql://${process.env.SQLUSER}:${process.env.SQLPASS}@${process.env.SQLHOST}/${process.env.SQLDBTINVENTORY}`,
   });
 
   // fastify.register(require("@fastify/mysql"), {
@@ -63,6 +63,9 @@ module.exports = async function buildApp(fastify) {
   const routes = [
     "auth", 
     "users",
+    "categories",
+    "supplier",
+    "products"
   ]; //register routes and models here
 
   /*--------------------------------------------------------------------

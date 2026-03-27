@@ -22,7 +22,7 @@ class BaseModel {
     this.recordLimit = 10000;
   }
 
-  async mysql(type, connection, sql, values, db = "ticketing-system") {
+  async mysql(type, connection, sql, values, db = "inventory_system") {
     this.fastify.log.info(sql);
     this.fastify.log.info({ params: values });
     const client = this.fastify.mysql[db];
@@ -44,7 +44,7 @@ class BaseModel {
     parameters,
     table,
     connection = null,
-    db = "ticketing-system",
+    db = "inventory_system",
   ) {
     // use parameters to check fields in table
     const fields = Object.keys(parameters);
@@ -58,7 +58,7 @@ class BaseModel {
   /*--------------------------------------------------------------------
   | generic create function                                             |
   ---------------------------------------------------------------------*/
-  async create(body, table, connection = null, db = "ticketing-system") {
+  async create(body, table, connection = null, db = "inventory_system") {
     //set if there are table name passed on, otherwise it will call  model table
     const tableName = table ? table : this.table;
     const fields = Object.keys(body);
@@ -72,7 +72,7 @@ class BaseModel {
   /*--------------------------------------------------------------------
   | generic update function                                             |
   ---------------------------------------------------------------------*/
-  async update(body, table, connection = null, db = "ticketing-system") {
+  async update(body, table, connection = null, db = "inventory_system") {
     //set if there are table name passed on, otherwise it will call  model table
     const tableName = table ? table : this.table;
     const exists = await this.checkIfExists(
@@ -117,7 +117,7 @@ class BaseModel {
   | generic get all function                                            |
   | use filter to filter data base on properties inside filter          |
   ---------------------------------------------------------------------*/
-  async findAll(filters, connection = null, db = "ticketing-system") {
+  async findAll(filters, connection = null, db = "inventory_system") {
     let sql = `SELECT * FROM ${this.table}`;
     let values = [];
     if (filters) {
@@ -132,7 +132,7 @@ class BaseModel {
   /*--------------------------------------------------------------------
   | get single row data using one or more parameters                    |
   ---------------------------------------------------------------------*/
-  async findOne(parameter, connection = null, db = "ticketing-system") {
+  async findOne(parameter, connection = null, db = "inventory_system") {
     const fields = Object.keys(parameter);
     const values = Object.values(parameter);
     const whereClause = fields.map((field) => `${field} = ?`).join(" AND ");
@@ -145,7 +145,7 @@ class BaseModel {
   | generic get by id function                                          |
   | get single row using id                                             |
   ---------------------------------------------------------------------*/
-  async findById(id, connection = null, db = "ticketing-system") {
+  async findById(id, connection = null, db = "inventory_system") {
     try {
       const exists = await this.checkIfExists({ id }, this.table);
       if (!exists)
@@ -162,7 +162,7 @@ class BaseModel {
   | fetching image from foreign key                                       |
   ---------------------------------------------------------------------*/
   async findByIdWithImage(
-    db = "ticketing-system",
+    db = "inventory_system",
     id,
     imageTable = null,
     foreignKey = null,
@@ -210,7 +210,7 @@ class BaseModel {
   | generic delete by id function                                       |
   | delete row using id                                                 |
   ---------------------------------------------------------------------*/
-  async delete(id, connection = null, db = "ticketing-system") {
+  async delete(id, connection = null, db = "inventory_system") {
     const sql = `DELETE FROM ${this.table} WHERE ${this.key} = ?`;
     const values = [id];
     return await this.mysql("execute", connection, sql, values, db);
@@ -220,7 +220,7 @@ class BaseModel {
   | generic disable by id function                                       |
   | disable row using id                                                 |
   ---------------------------------------------------------------------*/
-  async disable(id, connection = null, db = "ticketing-system") {
+  async disable(id, connection = null, db = "inventory_system") {
     const sql = `UPDATE ${this.table} SET disabled = ? WHERE ${this.key} = ?`;
     const values = ["true", id];
     return await this.mysql("execute", connection, sql, values, db);
@@ -512,7 +512,7 @@ class BaseModel {
     data,
     condition,
     connection = null,
-    db = "ticketing-system",
+    db = "inventory_system",
   ) {
     const tableName = table ? table : this.table;
 

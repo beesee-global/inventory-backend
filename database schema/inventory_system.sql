@@ -16,7 +16,7 @@
 
 
 -- Dumping database structure for inventory_system
-CREATE DATABASE IF NOT EXISTS `inventory_system` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+CREATE DATABASE IF NOT EXISTS `inventory_system` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `inventory_system`;
 
 -- Dumping structure for table inventory_system.categories
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table inventory_system.categories: ~0 rows (approximately)
 INSERT INTO `categories` (`id`, `pid`, `name`, `description`, `created_at`, `updated_at`) VALUES
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   KEY `FK_products_suppliers` (`supplier_id`),
   CONSTRAINT `FK_products_categories` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `FK_products_suppliers` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table inventory_system.products: ~0 rows (approximately)
 INSERT INTO `products` (`id`, `pid`, `sku`, `name`, `category_id`, `supplier_id`, `cost_price`, `retail_price`, `reorder_level`, `stock_quantity`, `expiry_date`, `created_at`, `updated_at`) VALUES
@@ -64,7 +64,7 @@ INSERT INTO `products` (`id`, `pid`, `sku`, `name`, `category_id`, `supplier_id`
 -- Dumping structure for table inventory_system.suppliers
 CREATE TABLE IF NOT EXISTS `suppliers` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `pid` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '0',
+  `pid` char(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '0',
   `name` varchar(255) NOT NULL DEFAULT '0',
   `contact_person` varchar(255) NOT NULL DEFAULT '0',
   `phone` varchar(255) NOT NULL DEFAULT '0',
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `suppliers` (
   `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table inventory_system.suppliers: ~0 rows (approximately)
 INSERT INTO `suppliers` (`id`, `pid`, `name`, `contact_person`, `phone`, `email`, `address`, `created_at`, `updated_at`) VALUES
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Dumping data for table inventory_system.users: ~1 rows (approximately)
 INSERT INTO `users` (`id`, `pid`, `first_name`, `last_name`, `email`, `password`, `contact_number`, `created_at`, `updated_at`) VALUES

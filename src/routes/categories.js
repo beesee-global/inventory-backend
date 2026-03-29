@@ -47,11 +47,11 @@ async function categoriesRoutes(fastify, options) {
     );
 
     fastify.delete(
-        "/",
+        "/:id",
         { preHandler: fastify.authenticate },
         async (request, reply) => {
-            const { body } = request;
-            return await categoriesModel.deleteById(body);
+            const { id } = request.params;
+            return await categoriesModel.deleteById(id);
         }
     )
 }

@@ -38,11 +38,11 @@ async function supplierRoutes(fastify, options) {
     );
 
     fastify.delete(
-        '/',
+        '/:id',
         { preHandler: fastify.authenticate },   
         async (request, reply) => {
-            const { body } = request;
-            return await supplierModel.deleteById(body);
+            const { id } = request.params;
+            return await supplierModel.deleteById(id);
         }
     )
 }

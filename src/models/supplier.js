@@ -95,13 +95,13 @@ class Supplier extends BaseModel {
         } 
     }
  
-    async deleteById (body) {
+    async deleteById (id) {
         try {
             let sql = `
                 DELETE FROM ${this.table} WHERE id IN (?)
             `
 
-            await this.mysql("query", null, sql, [body.id]);
+            await this.mysql("query", null, sql, [id]);
 
             return {    
                 success: true,

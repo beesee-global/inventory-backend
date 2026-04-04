@@ -65,7 +65,8 @@ module.exports = async function buildApp(fastify) {
     "users",
     "categories",
     "supplier",
-    "products"
+    "products",
+    "customer"
   ]; //register routes and models here
 
   /*--------------------------------------------------------------------

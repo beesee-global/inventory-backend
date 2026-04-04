@@ -15,10 +15,6 @@ class UsersModel extends BaseModel {
 
     async insert (body) {
         try {
-            // Validate that body contains the required nested objects
-            if (!body.details) {
-                throw new ApiError("details object is required", 400);
-            }
 
             await this.requireFields(body, [
                 "first_name",
@@ -28,23 +24,18 @@ class UsersModel extends BaseModel {
                 "contact_number"
             ]);
 
-            await this.requireFields(body.details, [
-                "employment_status",
-                "positions_id",
-            ]);
-
             // check if email already exists
             const emailExists = await this.checkIfExists({ email: body.email }, this.table);
-            if (emailExists.is_deleted == 0) {
+            if (emailExists) {
                 throw new ApiError("Email already exists", 400);
             }
 
-            const { details, user_id: actorUserId, ...userFields } = body;
-            userFields.password = await hashPassword(userFields.password);
+            body.password = await hashPassword(body.password);
 
             // prepare users data
             const userData = {
-                ...userFields,
+                ...body,
+                is_deleted: 0,
                 pid: uuidv4(),
                 created_at: new Date()
             };
@@ -52,28 +43,18 @@ class UsersModel extends BaseModel {
             // insert user
             const userResult = await this.create(userData, "users");
 
-            // prepare users_details data
-            const userDetailsData = {
-                ...details,
-                users_id: userResult.insertId,
-                created_at: new Date()
-            };
+            // const logs = {
+            //     created_at: new Date(),
+            //     user_id: actorUserId, 
+            //     action: "Create",
+            //     entity: "User",
+            //     details: `User account created for ${body.first_name} ${body.last_name}.`,
+            //     status_message: "User Created Successfully"
+            // }
 
-            // insert user details
-            await this.create(userDetailsData, "users_details");
-
-            const logs = {
-                created_at: new Date(),
-                user_id: actorUserId, 
-                action: "Create",
-                entity: "User",
-                details: `User account created for ${userFields.first_name} ${userFields.last_name}.`,
-                status_message: "User Created Successfully"
-            }
-
-            // Insert audit log
-            const auditLogsModel = new (require("./audit_logs.js"))(this.fastify);
-            await auditLogsModel.insert(logs);
+            // // Insert audit log
+            // const auditLogsModel = new (require("./audit_logs.js"))(this.fastify);
+            // await auditLogsModel.insert(logs);
 
             return {
                 success: true,
@@ -103,14 +84,26 @@ class UsersModel extends BaseModel {
                     for(const file of files) {
                         file.filename = `users/${file.filename}`;
                         const imageUrl = await this.uploadToR2(file);
+                        const imageExists = await this.checkIfExists({ users_id: id }, "users_images");
 
-                        let sql = `
-                            UPDATE users_images 
-                                SET image_url = ?, 
-                                updated_at = ? 
-                                WHERE users_id = ?`;
-                        let values = [imageUrl, new Date(), id]; 
-                        await this.mysql("query", null, sql, values);
+                        if (imageExists) {
+                            let sql = `
+                                UPDATE users_images 
+                                    SET image_url = ?, 
+                                    updated_at = ? 
+                                    WHERE users_id = ?`;
+                            let values = [imageUrl, new Date(), id]; 
+                            await this.mysql("query", null, sql, values);
+                        } else {
+                            await this.create(
+                                {
+                                    users_id: id,
+                                    image_url: imageUrl,
+                                    created_at: new Date()
+                                },
+                                "users_images"
+                            );
+                        }
                     }
 
                     return {
@@ -164,21 +157,16 @@ class UsersModel extends BaseModel {
                 u.email,
                 u.created_at,
                 u.updated_at,
-                ud.employment_status,
-                p.name as position,
-                p.is_protected,
-                ui.image_url
+                (
+                    SELECT uimg.image_url
+                    FROM users_images as uimg
+                    WHERE uimg.users_id = u.id
+                    ORDER BY uimg.updated_at DESC, uimg.created_at DESC, uimg.id DESC
+                    LIMIT 1
+                ) as image_url
             FROM users as u
-            LEFT JOIN users_details as ud
-                ON ud.users_id = u.id
-            LEFT JOIN users_images as ui
-                ON ui.users_id = u.id
-            LEFT JOIN positions as p
-                ON p.id = ud.positions_id 
-                AND (p.is_protected = 0 OR p.is_protected IS NULL)  -- 👈 only non-protected positions
             WHERE u.id != ?
-                AND u.is_deleted = 0 
-                AND u.id != 24
+                AND u.is_deleted = 0
             ORDER BY u.created_at DESC
             ;`;
 
@@ -187,26 +175,22 @@ class UsersModel extends BaseModel {
 
             // Transform the result
             const transformedData = result.map(user => ({
-            id: user.id,
-            pid: user.pid,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            created_at: user.created_at,
-            updated_at: user.updated_at,
-            details: {
-                employment_status: user.employment_status,
-                position: user.position
-            },
+                id: user.id,
+                pid: user.pid,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                email: user.email,
+                created_at: user.created_at,
+                updated_at: user.updated_at,
                 image_url: user.image_url
             }));
 
             return {
-            data: {
-                success: true,
-                message: "Retrieved successfully",
-                data: transformedData
-            }
+                data: {
+                    success: true,
+                    message: "Retrieved successfully",
+                    data: transformedData
+                }
             };
         } catch (error) {
             throw new ApiError(error, 400);
@@ -226,17 +210,16 @@ class UsersModel extends BaseModel {
                 u.email, 
                 u.created_at,
                 u.updated_at,
-                ud.employment_status,
-                p.name as position,
-                ui.image_url
+                (
+                    SELECT uimg.image_url
+                    FROM users_images as uimg
+                    WHERE uimg.users_id = u.id
+                    ORDER BY uimg.updated_at DESC, uimg.created_at DESC, uimg.id DESC
+                    LIMIT 1
+                ) as image_url
             FROM users as u
-            LEFT JOIN users_details as ud
-                ON ud.users_id = u.id
-            LEFT JOIN users_images as ui
-                ON ui.users_id = u.id
-            LEFT JOIN positions as p
-                ON p.id = ud.positions_id
             WHERE u.id = ?
+                AND u.is_deleted = 0
             `
 
             const value = [id];
@@ -254,10 +237,6 @@ class UsersModel extends BaseModel {
                     email: user.email, 
                     created_at: user.created_at,
                     updated_at: user.updated_at,
-                    details: {
-                        employment_status: user.employment_status,
-                        position: user.position
-                    },
                     image_url: user.image_url
                 };
 
@@ -300,15 +279,16 @@ class UsersModel extends BaseModel {
                 u.email, 
                 u.created_at,
                 u.updated_at,
-                ud.employment_status,
-                ud.positions_id as position,
-                ui.image_url
+                (
+                    SELECT uimg.image_url
+                    FROM users_images as uimg
+                    WHERE uimg.users_id = u.id
+                    ORDER BY uimg.updated_at DESC, uimg.created_at DESC, uimg.id DESC
+                    LIMIT 1
+                ) as image_url
             FROM users as u
-            LEFT JOIN users_details as ud
-                ON ud.users_id = u.id
-            LEFT JOIN users_images as ui
-                ON ui.users_id = u.id
-            WHERE pid = ?
+            WHERE u.pid = ?
+                AND u.is_deleted = 0
             `
 
             const value = [pid];
@@ -326,10 +306,6 @@ class UsersModel extends BaseModel {
                     email: user.email, 
                     created_at: user.created_at,
                     updated_at: user.updated_at,
-                    details: {
-                        employment_status: user.employment_status,
-                        position: user.position
-                    },
                     image_url: user.image_url
                 };
 
@@ -361,21 +337,13 @@ class UsersModel extends BaseModel {
     }
 
     async updateById(id, body) {
+        let auditUserId = body?.user_id || null;
         try {
-            // Validate body
-            if (!body.details) {
-                throw new ApiError("details object is required", 400);
-            }
-
             await this.requireFields(body, [
                 "first_name", 
                 "last_name", 
                 "email",
                 "contact_number"
-            ]);
-            await this.requireFields(body.details, [
-                "employment_status", 
-                "positions_id"
             ]);
 
             // Check if user exists
@@ -392,7 +360,8 @@ class UsersModel extends BaseModel {
             }
 
             // Separate user fields from nested details
-           const { details, user_id: actorUserId, ...userFields } = body;
+            const { details, user_id: actorUserId, ...userFields } = body;
+            auditUserId = actorUserId || auditUserId;
 
             // Prepare user table data
             const userData = {
@@ -402,47 +371,25 @@ class UsersModel extends BaseModel {
             };
 
             // Update users table
-            await this.update(userData, "users");
+            const result = await this.update(userData, "users");
 
-            // Fetch existing users_details row
-            const detailsResult = await this.mysql(
-                "query",
-                null,
-                `SELECT * FROM users_details WHERE users_id = ?`,
-                [id]
-            );
-            const existingDetails = detailsResult[0];
-            if (!existingDetails) {
-                throw new ApiError("User details not found", 400);
-            }
+            // const logs = {
+            //     created_at: new Date(),
+            //     user_id: actorUserId,
+            //     action: "Update",
+            //     entity: "User",
+            //     details: `User account updated for ${userFields.first_name} ${userFields.last_name}.`,
+            //     status_message: "User Updated Successfully"
+            // }
 
-            // Prepare users_details table data
-            const userDetailsData = {
-                ...details,
-                id: existingDetails.id,
-                updated_at: new Date(),
-            };
-
-            // Update users_details table
-            const result = await this.update(userDetailsData, "users_details");
-
-            const logs = {
-                created_at: new Date(),
-                user_id: actorUserId,
-                action: "Update",
-                entity: "User",
-                details: `User account updated for ${userFields.first_name} ${userFields.last_name}.`,
-                status_message: "User Updated Successfully"
-            }
-
-            // Insert audit log
-            const auditLogsModel = new (require("./audit_logs.js"))(this.fastify);
-            await auditLogsModel.insert(logs);
+            // // Insert audit log
+            // const auditLogsModel = new (require("./audit_logs.js"))(this.fastify);
+            // await auditLogsModel.insert(logs);
             return {
                 data: {
                     success: true,
                     message: "User updated successfully.",
-                    result,
+                    result
                 },
             };
         } catch (error) {
@@ -489,28 +436,41 @@ class UsersModel extends BaseModel {
                 for(const file of files) {
                     file.filename = `users/${file.filename}`
                     const imageUrl = await this.uploadToR2(file);
-                    let sql = `
-                        UPDATE users_images 
-                            SET image_url = ?, 
-                            updated_at = ? 
-                            WHERE users_id = ?`;
-                    let values = [imageUrl, new Date(), id]; 
-                    await this.mysql("query", null, sql, values);
+                    const imageExists = await this.checkIfExists({ users_id: id }, "users_images");
+
+                    if (imageExists) {
+                        let sql = `
+                            UPDATE users_images 
+                                SET image_url = ?, 
+                                updated_at = ? 
+                                WHERE users_id = ?`;
+                        let values = [imageUrl, new Date(), id]; 
+                        await this.mysql("query", null, sql, values);
+                    } else {
+                        await this.create(
+                            {
+                                users_id: id,
+                                image_url: imageUrl,
+                                created_at: new Date()
+                            },
+                            "users_images"
+                        );
+                    }
                 }
             }
  
-            const logs = {
-                created_at: new Date(),
-                user_id: props.user_id,
-                action: "Update",
-                entity: "User",
-                details: "User profile updated.",
-                status_message: "User Updated Successfully"
-            }
+            // const logs = {
+            //     created_at: new Date(),
+            //     user_id: props.user_id,
+            //     action: "Update",
+            //     entity: "User",
+            //     details: "User profile updated.",
+            //     status_message: "User Updated Successfully"
+            // }
 
-            // Insert audit log
-            const auditLogsModel = new (require("./audit_logs.js"))(this.fastify);
-            await auditLogsModel.insert(logs);
+            // // Insert audit log
+            // const auditLogsModel = new (require("./audit_logs.js"))(this.fastify);
+            // await auditLogsModel.insert(logs);
 
             return {
                 data: {
